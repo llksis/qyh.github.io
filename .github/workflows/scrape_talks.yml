@@ -41,11 +41,18 @@ jobs:
           git commit -m "Automated update of talk locations"
         fi
 
-    - name: Push changes using PAT
+    #- name: Push changes using PAT
       # ✅ 使用一个专门的 push action，并传入我们新创建的 PAT
-      uses: ad-m/github-push-action@master
-      with:
+    #  uses: ad-m/github-push-action@master
+     # with:
         # 这里就引用了我们刚刚在 Secrets 里创建的 GH_PAT
-        github_token: ${{ secrets.GH_PAT }}
-        branch: master
-        force: true
+      #  github_token: ${{ secrets.GH_PAT }}
+       # branch: master
+        #force: true
+    - name: Pull latest changes
+      run: |
+        git pull origin master --rebase
+    - name: Push changes
+      run: |
+        git push origin master  run: |
+        git push origin master
