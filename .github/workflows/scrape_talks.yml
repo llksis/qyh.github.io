@@ -30,12 +30,22 @@ jobs:
       run: |
         jupyter nbconvert --to notebook --execute talkmap.ipynb --output talkmap_out.ipynb
 
-    - name: Commit and Push changes
+    - name: Commit files
       run: |
-        git config user.name "llksis"
-        git config user.email "qiy319huang@gmail.com"
+        git config --local user.email "qiy319huang@gmail.com"
+        git config --local user.name "llksis"
         git add .
-        git commit -m "Automated update of talk locations" || echo "No changes to commit"
-        # ✅ 解决方案：在推送前，先用 rebase 模式拉取云端的最新改动
-        git pull --rebase
-        git push --force
+        if git diff --staged --quiet; then
+          echo "No changes to commit."
+        else
+          git commit -m "Automated update of talk locations"
+        fi
+
+    - name: Push changes using PAT
+      # ✅ 使用一个专门的 push action，并传入我们新创建的 PAT
+      uses: ad-m/github-push-action@master
+      with:
+        # 这里就引用了我们刚刚在 Secrets 里创建的 GH_PAT
+        github_token: ${{ secrets.GH_PAT }}
+        branch: master
+        force: true
