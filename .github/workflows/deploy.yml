@@ -1,0 +1,70 @@
+# A new, unified workflow to rule them all
+name: Build and Deploy Hugo Site
+
+on:
+  # 在推送到 master 分支时触发
+  push:
+    branches:
+      - master
+  # 允许你手动在 Actions 页面触发
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 的权限，允许它部署到 gh-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 只允许一个工作流同时运行，防止并发冲突
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 第一部分：准备环境和地图数据
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # 我们需要拉取所有历史记录来支持 Hugo
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: pip install jupyter pandas requests beautifulsoup4 geopy getorg --upgrade
+
+      - name: Execute Jupyter Notebook to update map
+        run: jupyter nbconvert --to notebook --execute talkmap.ipynb --output talkmap_out.ipynb
+      
+      # 第二部分：构建和部署网站
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.92.2' # 你可以使用你模板指定的 Hugo 版本
+          extended: true
+
+      - name: Build Hugo site
+        run: hugo --minify
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+  deploy:
+    # 需要 build 任务成功后才能运行
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
