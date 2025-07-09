@@ -6,7 +6,6 @@ on:
       - 'talks/**'
       - 'talkmap.ipynb'
 
-# ✅ 解决方案 1: 加上写入权限
 permissions:
   contents: write
 
@@ -15,10 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # ✅ 优化 2: 更新 actions 版本到 v4
     - uses: actions/checkout@v4
 
-    # ✅ 优化 2: 更新 actions 版本到 v5
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -33,12 +30,12 @@ jobs:
       run: |
         jupyter nbconvert --to notebook --execute talkmap.ipynb --output talkmap_out.ipynb
 
-    - name: Commit changes
+    - name: Commit and Push changes
       run: |
         git config user.name "llksis"
         git config user.email "qiy319huang@gmail.com"
         git add .
-        # 这里用 || 的写法很好，可以在没有改动时防止报错
         git commit -m "Automated update of talk locations" || echo "No changes to commit"
-        # ✅ 优化 1: 移除了不必要的 git pull
+        # ✅ 解决方案：在推送前，先用 rebase 模式拉取云端的最新改动
+        git pull --rebase
         git push
