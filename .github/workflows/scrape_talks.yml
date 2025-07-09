@@ -50,8 +50,7 @@ jobs:
        # branch: master
         #force: true
     - name: Pull latest changes
-      run: |
-        git pull origin master --rebase
+      run: git pull origin master --rebase
+
     - name: Push changes
-      run: |
-        git push origin master  
+      run: git push origin master
